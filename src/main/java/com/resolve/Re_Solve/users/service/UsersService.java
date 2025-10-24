@@ -4,6 +4,7 @@ import com.resolve.Re_Solve.global.advice.ApplicationError;
 import com.resolve.Re_Solve.global.advice.ApplicationException;
 import com.resolve.Re_Solve.users.UsersRepository;
 import com.resolve.Re_Solve.users.dto.ReqUsersDto;
+import com.resolve.Re_Solve.users.dto.ResUsersDto;
 import com.resolve.Re_Solve.users.entity.Users;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -33,6 +34,33 @@ public class UsersService {
     public String getMyUsername(Long usersId) {
         String username = usersRepository.findUsernameById(usersId);
         return username;
+    }
+
+    public ResUsersDto getMyInfo(Long usersId) {
+        Users users = usersRepository.findById(usersId).orElseThrow(() ->
+                new ApplicationException(ApplicationError.USERS_NOT_FOUND));
+        return new ResUsersDto(users);
+    }
+
+    public void offEmailUsers(Long usersId) {
+        Users users = usersRepository.findById(usersId).orElseThrow(() ->
+                new ApplicationException(ApplicationError.USERS_NOT_FOUND));
+        users.unSetWanted();
+        usersRepository.save(users);
+    }
+
+    public void onEmailUsers(Long usersId) {
+        Users users = usersRepository.findById(usersId).orElseThrow(() ->
+                new ApplicationException(ApplicationError.USERS_NOT_FOUND));
+        users.setWanted();
+        usersRepository.save(users);
+    }
+
+    public void quit(Long usersId) {
+        Users users = usersRepository.findById(usersId).orElseThrow(() ->
+                new ApplicationException(ApplicationError.USERS_NOT_FOUND));
+        users.setDeleted();
+        usersRepository.save(users);
     }
 
 }

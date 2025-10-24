@@ -14,10 +14,12 @@ import com.resolve.Re_Solve.wrong.dto.ReqWrongDto;
 import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -54,7 +56,10 @@ public class WrongService {
         wrongRepository.save(wrong);
     }
 
+
+    @Scheduled(cron = "0 0 4 * * *", zone = "Asia/Seoul")
     public void sendSchedule() {
+        log.info("Daily reminder start: {}", LocalDateTime.now());
         List<Users> users = usersRepository.findAll();
         LocalDate today = LocalDate.now();
         List<LocalDate> dates = List.of(
