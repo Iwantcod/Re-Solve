@@ -9,7 +9,9 @@ import java.util.Optional;
 
 public interface UsersRepository extends JpaRepository<Users, Long> {
     boolean existsByEmail(String email);
-    Optional<Users> findByEmail(String email);
+
+    @Query("select u from Users u where u.email = :email and u.isDeleted = false")
+    Optional<Users> findByEmailForLogin(@Param("email") String email);
     @Query("select u.username from Users u where u.usersId = :usersId")
     String findUsernameById(@Param("usersId") Long usersId);
 }
