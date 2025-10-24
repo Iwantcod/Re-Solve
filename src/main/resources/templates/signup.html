@@ -1,0 +1,213 @@
+<!-- src/main/resources/templates/signup.html -->
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ko">
+<head>
+    <meta charset="UTF-8" />
+    <title>회원가입</title>
+
+    <!-- (선택) CSRF 메타: Ajax 전송 시 사용 -->
+    <meta name="_csrf" th:content="${_csrf.token}" />
+    <meta name="_csrf_header" th:content="${_csrf.headerName}" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <style>
+        :root {
+            --border:#e5e7eb; --muted:#6b7280; --text:#111827; --accent:#111827;
+            --ok-bg:#ecfdf5; --ok:#065f46; --bad-bg:#fef2f2; --bad:#991b1b;
+        }
+        *{box-sizing:border-box}
+        body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;color:var(--text);margin:0;background:#fafafa}
+        .container{max-width:520px;margin:56px auto;padding:0 20px}
+        .card{background:#fff;border:1px solid var(--border);border-radius:16px;box-shadow:0 2px 10px rgba(0,0,0,.05);padding:26px}
+        h1{font-size:22px;margin:0 0 6px 0;text-align:center}
+        p.lead{margin:0 0 20px 0;text-align:center;color:var(--muted);font-size:14px}
+        .row{display:flex;flex-direction:column;gap:8px;margin-bottom:14px}
+        label{font-weight:600}
+        input,button{font-size:14px}
+        input{padding:10px 12px;border:1px solid #d1d5db;border-radius:10px;outline:none}
+        input:focus{border-color:#111827;box-shadow:0 0 0 3px rgba(17,24,39,.1)}
+        .inline{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:end}
+        .hint{font-size:12px;color:var(--muted)}
+        .hint.ok{color:var(--ok)}
+        .hint.bad{color:var(--bad)}
+        .actions{display:flex;justify-content:space-between;gap:10px;margin-top:4px}
+        .btn{padding:10px 14px;border:none;border-radius:10px;background:var(--accent);color:#fff;cursor:pointer}
+        .btn.secondary{background:#fff;color:var(--text);border:1px solid var(--border)}
+        .btn:disabled{opacity:.5;cursor:not-allowed}
+        a.link{color:var(--text);text-decoration:none}
+        a.link:hover{text-decoration:underline}
+        .actions .link.small-dark {
+            color: #333 !important;     /* 진한 회색으로 고정 */
+            text-decoration: none;      /* 기본 밑줄 제거 */
+            font-size: 0.8em;          /* 글자 크기 2/3 */
+            margin-top: 20px;            /* 글자를 버튼보다 살짝 아래로 내림 */
+            display: inline-block;      /* margin-top이 적용되도록 inline-block */
+        }
+        .actions .link.small-dark:hover {
+            text-decoration: underline; /* hover 시 밑줄 표시 */
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="card">
+        <h1>회원가입</h1>
+        <p class="lead">이메일 중복 확인 후 가입할 수 있어요.</p>
+
+        <form id="signupForm" th:action="@{/api/auth/join}" method="post" autocomplete="off">
+            <!-- 이메일 + 중복확인 -->
+            <div class="row">
+                <label for="email">이메일</label>
+                <div class="inline">
+                    <input id="email" name="email" type="email" placeholder="user@example.com" required />
+                    <button id="checkBtn" type="button" class="btn secondary">중복 확인</button>
+                </div>
+                <div id="emailMsg" class="hint"></div>
+            </div>
+
+            <!-- 비밀번호 -->
+            <div class="row">
+                <label for="password">비밀번호</label>
+                <input id="password" name="password" type="password" minlength="8" maxlength="64" required />
+                <div class="hint">8글자 이상으로 입력해주세요.</div>
+            </div>
+
+            <!-- 닉네임 -->
+            <div class="row">
+                <label for="username">닉네임</label>
+                <input id="username" name="username" type="text" minlength="2" maxlength="20" required />
+                <div class="hint">2~20자로 입력해주세요.</div>
+            </div>
+
+            <!-- CSRF (서버가 폼 전송을 보호할 때 필요) -->
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+
+            <div class="actions">
+                <a class="link small-dark" th:href="@{/login}">이미 계정이 있나요? 로그인</a>
+                <button id="submitBtn" type="submit" class="btn" disabled>회원가입</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    (function () {
+        const emailInput   = document.getElementById('email');
+        const checkBtn     = document.getElementById('checkBtn');
+        const emailMsg     = document.getElementById('emailMsg');
+        const submitBtn    = document.getElementById('submitBtn');
+        const form         = document.getElementById('signupForm');
+
+        const csrfToken  = document.querySelector('meta[name="_csrf"]')?.getAttribute('content');
+        const csrfHeader = document.querySelector('meta[name="_csrf_header"]')?.getAttribute('content');
+
+        let emailVerified = false;
+        let lastCheckedEmail = '';
+
+        function invalidateEmailVerification() {
+            emailVerified = false;
+            submitBtn.disabled = true;
+            if (emailInput.value.trim().length > 0) {
+                emailMsg.textContent = '이메일 중복 확인이 필요합니다.';
+                emailMsg.className = 'hint';
+            } else {
+                emailMsg.textContent = '';
+                emailMsg.className = 'hint';
+            }
+        }
+        emailInput.addEventListener('input', invalidateEmailVerification);
+
+        checkBtn.addEventListener('click', async function () {
+            const email = emailInput.value.trim();
+            if (!email) {
+                emailMsg.textContent = '이메일을 입력하세요.';
+                emailMsg.className = 'hint bad';
+                submitBtn.disabled = true;
+                emailVerified = false;
+                return;
+            }
+            const simpleEmail = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
+            if (!simpleEmail.test(email)) {
+                emailMsg.textContent = '올바른 이메일 형식이 아닙니다.';
+                emailMsg.className = 'hint bad';
+                submitBtn.disabled = true;
+                emailVerified = false;
+                return;
+            }
+
+            emailMsg.textContent = '중복 확인 중...';
+            emailMsg.className = 'hint';
+            checkBtn.disabled = true;
+
+            try {
+                const url = `/api/auth/check-email/${encodeURIComponent(email)}`;
+                const res = await fetch(url, { method: 'GET', credentials: 'same-origin' });
+
+                // (a) 200 + {"available": true|false}  또는  (b) 200=사용가능, 409=중복
+                let available = false;
+                if (res.ok) {
+                    try {
+                        const data = await res.clone().json();
+                        available = typeof data.available === 'boolean' ? data.available : true;
+                    } catch { available = true; }
+                } else if (res.status === 409) {
+                    available = false;
+                } else {
+                    available = false;
+                }
+
+                if (available) {
+                    emailVerified = true;
+                    lastCheckedEmail = email;
+                    emailMsg.textContent = '사용 가능한 이메일입니다.';
+                    emailMsg.className = 'hint ok';
+                    submitBtn.disabled = false;
+                } else {
+                    emailVerified = false;
+                    emailMsg.textContent = '이미 사용 중인 이메일입니다.';
+                    emailMsg.className = 'hint bad';
+                    submitBtn.disabled = true;
+                }
+            } catch {
+                emailVerified = false;
+                emailMsg.textContent = '중복 확인 중 오류가 발생했습니다. 잠시 후 다시 시도하세요.';
+                emailMsg.className = 'hint bad';
+                submitBtn.disabled = true;
+            } finally {
+                checkBtn.disabled = false;
+            }
+        });
+
+        form.addEventListener('submit', async function (e) {
+            e.preventDefault();
+
+            if (!emailVerified || emailInput.value.trim() !== lastCheckedEmail) {
+                emailMsg.textContent = '이메일 중복 확인을 먼저 완료하세요.';
+                emailMsg.className = 'bad';
+                submitBtn.disabled = true;
+                return;
+            }
+
+            const formData = new FormData(form);
+
+            try {
+                const res = await fetch(form.action, {
+                    method: 'POST',
+                    body: formData,
+                    credentials: 'include'
+                });
+
+                if (res.redirected) {
+                    window.location.href = '/login?signupSuccess';
+                } else {
+                    const err = await res.json().catch(() => ({}));
+                    alert(err.message || "회원가입 실패");
+                }
+            } catch (err) {
+                alert("요청 실패: " + (err.message || "알 수 없음"));
+            }
+        });
+    })();
+</script>
+</body>
+</html>

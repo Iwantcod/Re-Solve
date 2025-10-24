@@ -1,0 +1,39 @@
+# 로컬 데이터베이스에서 개발 시 사용(datasource의 요소를 자신의 로컬 환경에 맞게 수정하세요.)
+spring:
+  profiles:
+    active: local # 기본 프로파일: application-local.yml
+  jpa:
+    properties:
+      hibernate:
+        show_sql: true
+        format_sql: true
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: resolvepjt@gmail.com
+    password: ${GMAIL_APP_PASSWORD}
+    properties:
+      mail.smtp.auth: true
+      mail.smtp.starttls.enable: true
+      mail.smtp.starttls.required: true
+      mail.smtp.connectiontimeout: 5000
+      mail.smtp.timeout: 5000
+      mail.smtp.writetimeout: 5000
+    default-encoding: UTF-8
+logging:
+  level:
+    #    root: debug
+    org:
+      springframework:
+        security: trace
+        web:
+          servlet: debug
+          multipart: debug
+        validation: debug
+server:
+  servlet:
+    session:
+      cookie:
+        http-only: true
+        secure: true
+        same-site: lax
