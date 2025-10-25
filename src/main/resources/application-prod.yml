@@ -21,3 +21,10 @@ logging:
           servlet: debug
           multipart: debug
         validation: debug
+server:
+  forward-headers-strategy: native
+  tomcat:
+    remoteip:
+      protocol-header: x-forwarded-proto
+      remote-ip-header: x-forwarded-for
+      internal-proxies: ".*"
