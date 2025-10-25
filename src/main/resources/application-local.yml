@@ -13,3 +13,13 @@ spring:
     hikari:
       pool-name: HikariCP
       maximum-pool-size: 10
+logging:
+  level:
+    #    root: debug
+    org:
+      springframework:
+        security: trace
+        web:
+          servlet: debug
+          multipart: debug
+        validation: debug

@@ -1,6 +1,4 @@
 spring:
-  config:
-    import: optional:file:./.env[.properties] # .env 파일의 환경변수를 주입하여 jar 실행
   jpa:
     hibernate:
       ddl-auto: validate  # 개발 시에는 'create' or 'update', 실제 운영 시 'validate' or 'none'
@@ -13,3 +11,13 @@ spring:
     hikari:
       pool-name: HikariCP
       maximum-pool-size: 10
+logging:
+  level:
+    #    root: debug
+    org:
+      springframework:
+        security: trace
+        web:
+          servlet: debug
+          multipart: debug
+        validation: debug

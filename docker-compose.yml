@@ -1,0 +1,23 @@
+version: "3.9"
+
+services:
+  app:
+    build:
+      context: .          # 프로젝트 루트(= Dockerfile 위치)
+      dockerfile: Dockerfile
+    image: resolve-app:latest
+    ports:
+      - "18735:8080"
+    # 여기! compose가 .env 파일의 키=값을 읽어 컨테이너 환경변수로 넣어줍니다.
+    # .env 위치: 프로젝트 루트 디렉토리
+    env_file:
+      - .env
+    # 필요 시 추가 옵션들
+    # restart: unless-stopped
+    # depends_on:
+    #   - db
+    # healthcheck:
+    #   test: ["CMD", "wget", "-qO-", "http://localhost:8080/actuator/health"]
+    #   interval: 30s
+    #   timeout: 3s
+    #   retries: 5
