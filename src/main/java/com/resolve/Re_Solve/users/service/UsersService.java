@@ -60,6 +60,7 @@ public class UsersService {
         Users users = usersRepository.findById(usersId).orElseThrow(() ->
                 new ApplicationException(ApplicationError.USERS_NOT_FOUND));
         users.setDeleted();
+        users.unSetWanted();
         usersRepository.save(users);
     }
 

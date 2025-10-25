@@ -77,9 +77,10 @@
     <div th:if="${param.error}" class="alert err">이메일 또는 비밀번호가 올바르지 않습니다.</div>
     <div th:if="${param.logout}" class="alert ok">로그아웃되었습니다.</div>
     <div th:if="${param.signupSuccess}" class="alert ok">회원가입이 완료되었습니다. 로그인 해주세요.</div>
+    <div th:if="${param.quitSuccess}" class="alert ok">회원 탈퇴되었습니다.</div>
 
     <div class="card">
-        <h2 class="title">로그인</h2>
+        <h2 class="title">Re-Solve: 틀린 코딩 문제 복습 알리미</h2>
 
         <form th:action="@{/api/auth/login}" method="post" autocomplete="on">
             <div class="row">
@@ -91,7 +92,7 @@
                 <label for="password">비밀번호</label>
                 <input id="password" type="password" name="password" required placeholder="••••••••">
                 <div class="sub">
-                    <span class="muted">보안을 위해 공용 PC에서는 자동 로그인을 사용하지 마세요.</span>
+                    <span class="muted">문의사항: resolvepjt@gmail.com</span>
                 </div>
             </div>
 

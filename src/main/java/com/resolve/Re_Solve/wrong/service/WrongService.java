@@ -42,7 +42,8 @@ public class WrongService {
         }
         Long todayCount = wrongRepository.countTodayAddByUsersIdAndDate(usersId, LocalDate.now());
         if(todayCount >= 10) {
-            throw new ApplicationException(ApplicationError.FORBIDDEN_REQUEST);
+            // 하루에 10문제까지 추가 가능
+            throw new ApplicationException(ApplicationError.OVER_REQUEST);
         }
 
         String title = "";
@@ -57,7 +58,7 @@ public class WrongService {
     }
 
 
-    @Scheduled(cron = "0 0 4 * * *", zone = "Asia/Seoul")
+    @Scheduled(cron = "0 0 7 * * *", zone = "Asia/Seoul")
     public void sendSchedule() {
         log.info("Daily reminder start: {}", LocalDateTime.now());
         List<Users> users = usersRepository.findAll();

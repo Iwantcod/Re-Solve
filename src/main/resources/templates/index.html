@@ -176,6 +176,19 @@
             .find(row => row.startsWith(name + '='))
             ?.split('=')[1];
     }
+    function deleteCookie(name) {
+        // 기본 경로
+        document.cookie = `${name}=; Max-Age=0; Path=/;`;
+        document.cookie = `${name}=; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/;`;
+
+        // (옵션) 서브도메인까지 지우기 — 필요 없으면 아래 for문은 제거해도 됨
+        const parts = location.hostname.split('.');
+        for (let i = 0; i < parts.length - 1; i++) {
+            const domain = '.' + parts.slice(i).join('.');
+            document.cookie = `${name}=; Max-Age=0; Path=/; Domain=${domain};`;
+            document.cookie = `${name}=; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/; Domain=${domain};`;
+        }
+    }
 
     // ----- 메시지 표시 -----
     function showMessage(text, ok = true) {
@@ -330,6 +343,43 @@
         }
     }
 
+    // 탈퇴 후 리다이렉션
+    /* === 탈퇴 처리 === */
+    async function quitAndRedirect() {
+        const confirmBtn = document.getElementById('btnQuitConfirm');
+        const cancelBtn  = document.getElementById('btnQuitCancel');
+        confirmBtn.disabled = true; cancelBtn.disabled = true;
+
+        try {
+            const xsrf = decodeURIComponent(getCookie('XSRF-TOKEN') || '');
+            const res = await fetch('/api/users/quit', {
+                method: 'POST',
+                credentials: 'include',
+                headers: { 'X-XSRF-TOKEN': xsrf }
+            });
+
+            // 서버가 세션 무효화하더라도 클라 쿠키도 정리
+            deleteCookie('JSESSIONID');
+            deleteCookie('XSRF-TOKEN');
+
+            if (res.ok) {
+                window.location.href = '/login?quitSuccess';
+            } else {
+                let msg = '회원 탈퇴 실패';
+                try {
+                    const data = await res.json();
+                    msg = data.message || JSON.stringify(data);
+                } catch { msg = await res.text(); }
+                alert(msg);
+            }
+        } catch (e) {
+            alert('요청 실패: ' + (e?.message || '알 수 없음'));
+        } finally {
+            confirmBtn.disabled = false; cancelBtn.disabled = false;
+            hideQuitSheet();
+        }
+    }
+
     // 활성화/비활성화 버튼
     document.getElementById('btnOn').addEventListener('click', () => {
         postAndRedirect('/api/users/on-email', '/');
@@ -341,9 +391,7 @@
     // 회원 탈퇴 버튼 → 확인 시트 열기
     document.getElementById('btnQuitOpen').addEventListener('click', showQuitSheet);
     document.getElementById('btnQuitCancel').addEventListener('click', hideQuitSheet);
-    document.getElementById('btnQuitConfirm').addEventListener('click', () => {
-        postAndRedirect('/api/users/quit', '/login');
-    });
+    document.getElementById('btnQuitConfirm').addEventListener('click', quitAndRedirect);
 
     init();
 </script>

@@ -3,10 +3,14 @@ package com.resolve.Re_Solve.users;
 import com.resolve.Re_Solve.global.annotation.LoginUsersId;
 import com.resolve.Re_Solve.users.dto.ResUsersDto;
 import com.resolve.Re_Solve.users.service.UsersService;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -41,8 +45,15 @@ public class UsersController {
     }
 
     @PostMapping("/quit")
-    public ResponseEntity<String> quit(@LoginUsersId Long usersId) {
+    public ResponseEntity<String> quit(@LoginUsersId Long usersId, HttpServletRequest request, HttpServletResponse response) {
         usersService.quit(usersId);
+        // 쿠키 및 세션 제거
+        request.getSession().invalidate();
+        SecurityContextHolder.clearContext();
+        Cookie cookie = new Cookie("JSESSIONID", null);
+        cookie.setMaxAge(0);
+        cookie.setPath("/");
+        response.addCookie(cookie);
         return ResponseEntity
                 .status(HttpStatus.SEE_OTHER) // 303 See Other
                 .header(HttpHeaders.LOCATION, "/login")
